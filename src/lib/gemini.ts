@@ -118,7 +118,9 @@ async function startStreamWithRetry(
   const args = {
     model,
     messages: toGroqMessages(systemPrompt, messages),
-    temperature: 0.7,
+    // 0.8 gives chat a more natural, human cadence than the default 0.7.
+    // Insights/JSON generation use lower temps in their own helpers below.
+    temperature: 0.8,
     max_tokens: 1500,
     stream: true as const,
   };

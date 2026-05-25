@@ -131,9 +131,12 @@ export function profileToPromptSnippet(profile: UserProfile): string {
   if (profile.goals) lines.push(`Goals: ${profile.goals}`);
 
   const toneInstruction = {
-    friendly: "Keep your tone warm and friendly.",
-    concise: "Keep your tone tight and to the point. No fluff.",
-    professional: "Keep your tone polished and professional.",
+    friendly:
+      "Default tone: warm and conversational, like a thoughtful friend. Use contractions. Match their emotional energy. Still acknowledge feelings before any data when they come up.",
+    concise:
+      "Default tone: respectful brevity for practical questions. But STILL acknowledge feelings in 1 sentence first when emotion is present — never skip straight to bullet points if they're upset.",
+    professional:
+      "Default tone: polished and clear, but warmer than corporate-speak. Still acknowledge emotion in 1-2 plain-prose sentences before any structured answer when feelings are present.",
   }[profile.preferredTone];
 
   if (lines.length === 0) {

@@ -2,7 +2,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { Mail, Calendar, TrendingUp, CheckCircle2, AlertTriangle } from "lucide-react";
+import { LayoutDashboard, RefreshCw, TrendingUp, CheckCircle2, AlertTriangle } from "lucide-react";
 import { GlowOrb } from "./glow-orb";
 
 const reportItems = [
@@ -48,16 +48,16 @@ export function WeeklyReportsPreview() {
               {/* Report header */}
               <div className="flex items-center gap-3 mb-6 pb-4 border-b border-white/[0.05]">
                 <div className="w-9 h-9 rounded-lg bg-primary/15 flex items-center justify-center">
-                  <Mail className="w-4 h-4 text-primary" />
+                  <LayoutDashboard className="w-4 h-4 text-primary" />
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-white">
-                    Weekly Digest — Dec 16–22
+                    This week&apos;s summary
                   </p>
                   <div className="flex items-center gap-1.5 mt-0.5">
-                    <Calendar className="w-3 h-3 text-[#52525b]" />
+                    <RefreshCw className="w-3 h-3 text-[#52525b]" />
                     <span className="text-[11px] text-[#52525b]">
-                      Auto-generated every Monday at 9 AM
+                      Refreshes on your dashboard whenever you visit
                     </span>
                   </div>
                 </div>

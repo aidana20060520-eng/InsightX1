@@ -10,6 +10,7 @@ import { PageTransition } from "@/components/layout/page-transition";
 import { useTheme } from "@/components/providers/theme-provider";
 import { NotionConnectionCard } from "@/components/notion/notion-connection-card";
 import { AboutYouCard } from "@/components/settings/about-you-card";
+import { DangerZoneCard } from "@/components/settings/danger-zone-card";
 import { cn } from "@/lib/utils";
 
 export default function SettingsPage() {
@@ -166,6 +167,9 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
       </motion.div>
+
+      {/* Your Data — export + delete account */}
+      <DangerZoneCard />
     </PageTransition>
   );
 }

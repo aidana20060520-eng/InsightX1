@@ -14,10 +14,24 @@ export interface Recommendation {
   action: string;
 }
 
-const impactColor = {
-  high: "text-red-400 bg-red-400/10",
-  medium: "text-amber-400 bg-amber-400/10",
-  low: "text-blue-400 bg-blue-400/10",
+// Supportive labels — never tell the user "high impact = act now or fail".
+// Frame as opportunities, not pressure. Colors stay in our calm palette.
+const impactConfig: Record<
+  "high" | "medium" | "low",
+  { label: string; className: string }
+> = {
+  high: {
+    label: "Big win",
+    className: "text-primary bg-primary/10",
+  },
+  medium: {
+    label: "Worthwhile",
+    className: "text-accent bg-accent/10",
+  },
+  low: {
+    label: "Quick polish",
+    className: "text-sky-300 bg-sky-300/10",
+  },
 };
 
 // Persist dismissed/accepted rec IDs in localStorage so they don't reappear
@@ -96,16 +110,16 @@ export function AiRecommendations({
   const hasHidden = hiddenIds.size > 0;
 
   return (
-    <Card className="h-full">
+    <Card className="h-full rounded-2xl">
       <CardContent className="p-5">
         <div className="flex items-center gap-2 mb-4">
-          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
+          <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
             <Sparkles className="w-3.5 h-3.5 text-primary" />
           </div>
           <div>
-            <h3 className="text-sm font-semibold">AI Recommendations</h3>
+            <h3 className="text-sm font-semibold">Suggestions for you</h3>
             <p className="text-[11px] text-muted-foreground">
-              Personalized actions to improve outcomes
+              Gentle ideas based on your recent activity
             </p>
           </div>
         </div>
@@ -149,13 +163,13 @@ export function AiRecommendations({
                   }}
                   exit={{ opacity: 0, x: 20, transition: { duration: 0.25 } }}
                   transition={{ duration: 0.3 }}
-                  className="rounded-xl border border-border bg-muted/30 p-4 group hover:border-primary/20 transition-colors"
+                  className="rounded-2xl border border-border bg-muted/30 p-4 group hover:border-primary/30 transition-colors"
                 >
                   <div className="flex items-start justify-between gap-2 mb-2">
                     <span
-                      className={`text-[10px] font-medium px-2 py-0.5 rounded-full uppercase tracking-wider ${impactColor[rec.impact]}`}
+                      className={`text-[10px] font-medium px-2.5 py-0.5 rounded-full tracking-wide ${impactConfig[rec.impact].className}`}
                     >
-                      {rec.impact} impact
+                      {impactConfig[rec.impact].label}
                     </span>
                     <button
                       onClick={() => handleDismiss(rec.id)}

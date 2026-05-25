@@ -13,20 +13,38 @@ export interface Project {
   tasks: { done: number; total: number };
 }
 
+// Calmer, supportive labels. We never tell the user a project is
+// "critical" or in red — that creates pressure. Instead we surface it
+// gently as something that could use attention or focus.
 const statusConfig = {
-  healthy: { label: "Healthy", color: "text-green-400", bg: "bg-green-400/10", bar: "bg-green-400" },
-  "at-risk": { label: "At Risk", color: "text-amber-400", bg: "bg-amber-400/10", bar: "bg-amber-400" },
-  critical: { label: "Critical", color: "text-red-400", bg: "bg-red-400/10", bar: "bg-red-400" },
+  healthy: {
+    label: "On track",
+    color: "text-emerald-400",
+    bg: "bg-emerald-400/10",
+    bar: "bg-emerald-400",
+  },
+  "at-risk": {
+    label: "Could use focus",
+    color: "text-amber-300",
+    bg: "bg-amber-300/10",
+    bar: "bg-amber-300",
+  },
+  critical: {
+    label: "Needs attention",
+    color: "text-primary",
+    bg: "bg-primary/10",
+    bar: "bg-primary",
+  },
 };
 
 export function ProjectHealth({ projects = [] }: { projects?: Project[] }) {
   return (
-    <Card>
+    <Card className="rounded-2xl">
       <CardContent className="p-5">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <Folder className="w-4 h-4 text-primary" />
-            <h3 className="text-sm font-semibold">Project Health</h3>
+            <h3 className="text-sm font-semibold">Your projects</h3>
           </div>
           <button className="text-[11px] text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
             View all

@@ -32,10 +32,10 @@ interface ChatSession {
 }
 
 const suggestedPrompts = [
-  "Summarize my workspace",
-  "Which pages have I neglected?",
-  "What did I work on most recently?",
-  "Give me a productivity check-in",
+  "Give me a tour of my workspace",
+  "What did I accomplish this week?",
+  "Suggest something I could explore next",
+  "Help me think through what to do today",
 ];
 
 export default function ChatPage() {
@@ -451,10 +451,10 @@ export default function ChatPage() {
           </div>
         )}
 
-        {/* Input */}
+        {/* Input — Gemini-style animated gradient ring */}
         <div className="border-t border-border p-4">
           <div className="max-w-3xl mx-auto flex items-center gap-3">
-            <div className="flex-1 relative">
+            <div className="gradient-ring rounded-2xl flex-1">
               <input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
@@ -466,14 +466,14 @@ export default function ChatPage() {
                 }}
                 placeholder="Ask InsightX anything about your Notion workspace..."
                 disabled={isStreaming}
-                className="w-full h-11 rounded-xl border border-border bg-muted/50 px-4 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-all disabled:opacity-60"
+                className="w-full h-11 rounded-2xl bg-card px-4 text-sm placeholder:text-muted-foreground focus:outline-none transition-all disabled:opacity-60"
               />
             </div>
             <Button
               size="icon"
               onClick={() => handleSend()}
               disabled={!input.trim() || isStreaming}
-              className="shrink-0"
+              className="shrink-0 h-11 w-11 rounded-2xl"
             >
               <Send className="w-4 h-4" />
             </Button>

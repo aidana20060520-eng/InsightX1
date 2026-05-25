@@ -142,24 +142,36 @@ export default function DashboardPage() {
         </motion.div>
       )}
 
-      {/* Overview cards */}
+      {/* HERO: Insights take priority. They're the reason the user is here. */}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+      >
+        <InsightsFeed
+          key={`insights-${data?.insights?.length ?? 0}`}
+          initial={data?.insights}
+        />
+      </motion.div>
+
+      {/* Quick stats — supporting context, not the main story */}
       <OverviewCards cards={data?.overviewCards} />
 
       {/* Weekly summary spans full width */}
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2, duration: 0.4 }}
+        transition={{ delay: 0.15, duration: 0.4 }}
       >
         <WeeklySummary data={data?.weeklySummary} />
       </motion.div>
 
-      {/* Trends + Focus score */}
+      {/* Trends chart + Focus score side by side on wide screens */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.25, duration: 0.4 }}
+          transition={{ delay: 0.2, duration: 0.4 }}
           className="lg:col-span-2"
         >
           <ProductivityTrends data={data?.productivityTrends} />
@@ -167,35 +179,26 @@ export default function DashboardPage() {
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 0.4 }}
+          transition={{ delay: 0.25, duration: 0.4 }}
         >
           <FocusScore data={data?.focusScore} />
         </motion.div>
       </div>
 
-      {/* Project health + Insights feed + Recommendations */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      {/* Project list + Suggestions side-by-side. Two cols (was three with
+          Insights) so each gets more room to breathe. */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.35, duration: 0.4 }}
+          transition={{ delay: 0.3, duration: 0.4 }}
         >
           <ProjectHealth projects={data?.projectHealth} />
         </motion.div>
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4, duration: 0.4 }}
-        >
-          <InsightsFeed
-            key={`insights-${data?.insights?.length ?? 0}`}
-            initial={data?.insights}
-          />
-        </motion.div>
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.45, duration: 0.4 }}
+          transition={{ delay: 0.35, duration: 0.4 }}
         >
           <AiRecommendations
             key={`recs-${data?.recommendations?.length ?? 0}`}

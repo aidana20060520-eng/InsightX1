@@ -22,54 +22,57 @@
   --color-sidebar-border: var(--sidebar-border);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-  --radius-sm: 0.5rem;
-  --radius-md: 0.75rem;
-  --radius-lg: 1rem;
-  --radius-xl: 1.5rem;
+  --radius-sm: 0.625rem;
+  --radius-md: 0.875rem;
+  --radius-lg: 1.25rem;
+  --radius-xl: 1.75rem;
+  --radius-2xl: 2rem;
 }
 
 :root {
-  --background: #ffffff;
-  --foreground: #0f0f12;
-  --muted: #f4f4f5;
-  --muted-foreground: #71717a;
+  /* Light mode — pale lavender wash, warm-purple primary, soft pink accent. */
+  --background: #fbfaff;
+  --foreground: #1a1530;
+  --muted: #f3f0fa;
+  --muted-foreground: #6b6483;
   --card: #ffffff;
-  --card-foreground: #0f0f12;
-  --border: #e4e4e7;
-  --input: #e4e4e7;
-  --primary: #6366f1;
+  --card-foreground: #1a1530;
+  --border: #e9e4f3;
+  --input: #e9e4f3;
+  --primary: #7c5cff;
   --primary-foreground: #ffffff;
-  --secondary: #f4f4f5;
-  --secondary-foreground: #18181b;
-  --accent: #8b5cf6;
+  --secondary: #f3f0fa;
+  --secondary-foreground: #1a1530;
+  --accent: #c084fc;
   --accent-foreground: #ffffff;
-  --destructive: #ef4444;
-  --ring: #6366f1;
-  --sidebar: #fafafa;
-  --sidebar-foreground: #0f0f12;
-  --sidebar-border: #e4e4e7;
+  --destructive: #f59e0b;
+  --ring: #7c5cff;
+  --sidebar: #f7f4fc;
+  --sidebar-foreground: #1a1530;
+  --sidebar-border: #e9e4f3;
 }
 
 .dark {
-  --background: #09090b;
-  --foreground: #fafafa;
-  --muted: #18181b;
-  --muted-foreground: #a1a1aa;
-  --card: #0f0f14;
-  --card-foreground: #fafafa;
-  --border: #1e1e24;
-  --input: #27272a;
-  --primary: #818cf8;
-  --primary-foreground: #0f0f12;
-  --secondary: #18181b;
-  --secondary-foreground: #fafafa;
-  --accent: #a78bfa;
-  --accent-foreground: #0f0f12;
-  --destructive: #f87171;
-  --ring: #818cf8;
-  --sidebar: #0a0a0f;
-  --sidebar-foreground: #fafafa;
-  --sidebar-border: #1e1e24;
+  /* Dark mode — deep ink with a violet undertone, lavender primary, soft pink accent. */
+  --background: #0c0a14;
+  --foreground: #f4f1fa;
+  --muted: #1a1626;
+  --muted-foreground: #9990ad;
+  --card: #15121f;
+  --card-foreground: #f4f1fa;
+  --border: #221e30;
+  --input: #2a2538;
+  --primary: #a78bfa;
+  --primary-foreground: #1a1530;
+  --secondary: #1a1626;
+  --secondary-foreground: #f4f1fa;
+  --accent: #f0abfc;
+  --accent-foreground: #1a1530;
+  --destructive: #fbbf24;
+  --ring: #a78bfa;
+  --sidebar: #0a0812;
+  --sidebar-foreground: #f4f1fa;
+  --sidebar-border: #1c1828;
 }
 
 * {
@@ -130,6 +133,79 @@ body {
 /* Smooth scrolling */
 html {
   scroll-behavior: smooth;
+}
+
+/* ============================================================
+   Brand gradient — used on chat inputs, hero CTAs, focal
+   surfaces. Calm lavender → pink → soft blue, looped.
+   ============================================================ */
+.brand-gradient {
+  background: linear-gradient(
+    100deg,
+    #a78bfa 0%,
+    #f0abfc 25%,
+    #93c5fd 50%,
+    #f0abfc 75%,
+    #a78bfa 100%
+  );
+  background-size: 200% 100%;
+  animation: brand-gradient-shift 8s linear infinite;
+}
+
+@keyframes brand-gradient-shift {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+
+/* Subtle variant: same hues, lower contrast, no animation. Use for
+   ambient surfaces (cards, dividers) where movement would distract. */
+.brand-gradient-soft {
+  background: linear-gradient(
+    135deg,
+    rgba(167, 139, 250, 0.12) 0%,
+    rgba(240, 171, 252, 0.08) 50%,
+    rgba(147, 197, 253, 0.12) 100%
+  );
+}
+
+/* Wrapper to render an animated gradient ring around a child element
+   without bleeding the gradient into its background. Use as:
+   <div class="gradient-ring rounded-3xl">
+     <input class="rounded-[calc(theme(borderRadius.3xl)-2px)]" />
+   </div>
+*/
+.gradient-ring {
+  position: relative;
+  padding: 2px;
+}
+.gradient-ring::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 2px;
+  background: linear-gradient(
+    100deg,
+    #a78bfa 0%,
+    #f0abfc 25%,
+    #93c5fd 50%,
+    #f0abfc 75%,
+    #a78bfa 100%
+  );
+  background-size: 200% 100%;
+  animation: brand-gradient-shift 8s linear infinite;
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  opacity: 0.55;
+  transition: opacity 0.25s ease;
+}
+.gradient-ring:focus-within::before,
+.gradient-ring:hover::before {
+  opacity: 1;
 }
 
 /* Typography for marketing / legal pages (Privacy, Terms, Contact). */

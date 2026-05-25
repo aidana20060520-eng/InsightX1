@@ -40,10 +40,10 @@ interface SessionMeta {
 }
 
 const suggestedPrompts = [
-  "What's at risk this week?",
-  "Summarize my week",
-  "Find my blockers",
-  "Top priorities for tomorrow",
+  "What did I accomplish this week?",
+  "What could use my focus today?",
+  "Suggest a project I could start",
+  "Help me plan tomorrow",
 ];
 
 export function FloatingAssistant() {
@@ -528,27 +528,29 @@ export function FloatingAssistant() {
                           )}
                         </div>
 
-                        {/* Input */}
+                        {/* Input — Gemini-style animated gradient ring */}
                         <div className="border-t border-border p-3 shrink-0">
                           <div className="flex items-center gap-2">
-                            <input
-                              value={input}
-                              onChange={(e) => setInput(e.target.value)}
-                              onKeyDown={(e) => {
-                                if (e.key === "Enter" && !e.shiftKey) {
-                                  e.preventDefault();
-                                  handleSend();
-                                }
-                              }}
-                              placeholder="Ask about your workspace..."
-                              disabled={isStreaming}
-                              className="flex-1 h-10 rounded-xl border border-border bg-muted/40 px-3.5 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all disabled:opacity-60"
-                            />
+                            <div className="gradient-ring rounded-2xl flex-1">
+                              <input
+                                value={input}
+                                onChange={(e) => setInput(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter" && !e.shiftKey) {
+                                    e.preventDefault();
+                                    handleSend();
+                                  }
+                                }}
+                                placeholder="Ask about your workspace..."
+                                disabled={isStreaming}
+                                className="w-full h-10 rounded-2xl bg-card px-4 text-sm placeholder:text-muted-foreground focus:outline-none transition-all disabled:opacity-60"
+                              />
+                            </div>
                             <Button
                               size="icon"
                               onClick={() => handleSend()}
                               disabled={!input.trim() || isStreaming}
-                              className="h-10 w-10 shrink-0 rounded-xl"
+                              className="h-10 w-10 shrink-0 rounded-2xl"
                             >
                               <Send className="w-4 h-4" />
                             </Button>

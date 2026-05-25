@@ -9,6 +9,7 @@ import {
   updateSessionTitle,
   userOwnsSession,
 } from "@/lib/chat-history";
+import { checkChatRateLimit } from "@/lib/rate-limit";
 
 // Node runtime so we can use the Supabase admin client. Streaming still
 // works fine on Node.
@@ -88,6 +89,21 @@ export async function POST(req: NextRequest) {
     }
 
     const userId = await getCurrentUserId();
+
+    // -------- Rate limit (per user) --------
+    const limit = await checkChatRateLimit(userId);
+    if (!limit.allowed) {
+      return new Response(
+        JSON.stringify({ error: limit.reason, retryAfter: limit.retryAfter }),
+        {
+          status: 429,
+          headers: {
+            "Content-Type": "application/json",
+            "Retry-After": String(limit.retryAfter),
+          },
+        }
+      );
+    }
 
     // -------- Session management --------
     // sessionId may be provided. If not, we create one. If provided but not

@@ -2,14 +2,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import {
-  Bell,
-  Shield,
-  Globe,
-  CreditCard,
-  Moon,
-  Sun,
-} from "lucide-react";
+import { Moon, Sun } from "lucide-react";
 import { useUser, useClerk } from "@clerk/nextjs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,37 +11,6 @@ import { useTheme } from "@/components/providers/theme-provider";
 import { NotionConnectionCard } from "@/components/notion/notion-connection-card";
 import { AboutYouCard } from "@/components/settings/about-you-card";
 import { cn } from "@/lib/utils";
-
-/**
- * Features that aren't built yet but are listed so users know they're
- * planned. Each shows as a disabled card with a "Coming soon" badge.
- */
-const comingSoonSections = [
-  {
-    id: "notifications",
-    label: "Notifications",
-    icon: Bell,
-    description: "Email and in-app alerts for activity and digests",
-  },
-  {
-    id: "security",
-    label: "Security",
-    icon: Shield,
-    description: "Two-factor auth and session management",
-  },
-  {
-    id: "language",
-    label: "Language & Region",
-    icon: Globe,
-    description: "Choose your preferred language and timezone",
-  },
-  {
-    id: "billing",
-    label: "Billing",
-    icon: CreditCard,
-    description: "Upgrade plans and manage payment methods",
-  },
-];
 
 export default function SettingsPage() {
   const { theme, toggleTheme } = useTheme();
@@ -175,45 +137,6 @@ export default function SettingsPage() {
                 </motion.div>
               </button>
             </div>
-          </CardContent>
-        </Card>
-      </motion.div>
-
-      {/* Coming soon — placeholders for future features */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2, duration: 0.4 }}
-      >
-        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-          Coming soon
-        </h2>
-        <Card>
-          <CardContent className="p-0">
-            {comingSoonSections.map((section, i, arr) => (
-              <div
-                key={section.id}
-                className={cn(
-                  "w-full flex items-center gap-4 p-4 text-left opacity-60 cursor-not-allowed select-none",
-                  i < arr.length - 1 && "border-b border-border"
-                )}
-                aria-disabled="true"
-                title="Coming soon"
-              >
-                <div className="w-9 h-9 rounded-lg bg-muted flex items-center justify-center">
-                  <section.icon className="w-4 h-4 text-muted-foreground" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium">{section.label}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {section.description}
-                  </p>
-                </div>
-                <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-muted text-muted-foreground uppercase tracking-wide">
-                  Soon
-                </span>
-              </div>
-            ))}
           </CardContent>
         </Card>
       </motion.div>

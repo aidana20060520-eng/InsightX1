@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Sparkles,
@@ -9,6 +9,7 @@ import {
   CheckCircle2,
   Zap,
   Inbox,
+  RotateCcw,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,14 +30,49 @@ const config = {
   tip: { icon: Zap, color: "text-violet-400", bg: "bg-violet-400/10" },
 };
 
+// Persist dismissed insight IDs so they don't reappear on refresh/remount.
+const DISMISSED_KEY = "insightx:dismissed-insights";
+
+function readSet(): Set<string> {
+  if (typeof window === "undefined") return new Set();
+  try {
+    const raw = window.localStorage.getItem(DISMISSED_KEY);
+    if (!raw) return new Set();
+    const arr = JSON.parse(raw);
+    return Array.isArray(arr) ? new Set(arr.filter((x) => typeof x === "string")) : new Set();
+  } catch {
+    return new Set();
+  }
+}
+
+function writeSet(set: Set<string>) {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(DISMISSED_KEY, JSON.stringify(Array.from(set)));
+  } catch {
+    /* fail quietly */
+  }
+}
+
 export function InsightsFeed({ initial = [] }: { initial?: Insight[] }) {
-  // Use lazy initializer so we only seed once from the prop. The parent
-  // resets this widget via a `key` when fresh data arrives.
-  const [insights, setInsights] = useState<Insight[]>(() => initial);
+  const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    setHiddenIds(readSet());
+  }, []);
+
+  const insights = initial.filter((i) => !hiddenIds.has(i.id));
+  const hasHidden = hiddenIds.size > 0;
 
   const dismiss = (id: string) => {
-    // Optimistic update
-    setInsights((prev) => prev.filter((i) => i.id !== id));
+    const next = new Set(hiddenIds).add(id);
+    setHiddenIds(next);
+    writeSet(next);
+  };
+
+  const restore = () => {
+    setHiddenIds(new Set());
+    writeSet(new Set());
   };
 
   return (
@@ -65,8 +101,19 @@ export function InsightsFeed({ initial = [] }: { initial?: Insight[] }) {
                 </div>
                 <p className="text-sm font-medium">All caught up</p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  New insights will appear here as they&apos;re generated.
+                  {hasHidden
+                    ? "All insights have been dismissed."
+                    : "New insights will appear here as they're generated."}
                 </p>
+                {hasHidden && (
+                  <button
+                    onClick={restore}
+                    className="mt-3 inline-flex items-center gap-1.5 text-xs text-primary hover:underline"
+                  >
+                    <RotateCcw className="w-3 h-3" />
+                    Restore dismissed
+                  </button>
+                )}
               </motion.div>
             ) : (
               insights.map((insight) => {

@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, Check, ArrowRight, X } from "lucide-react";
+import { Sparkles, Check, ArrowRight, X, RotateCcw } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
@@ -20,26 +20,80 @@ const impactColor = {
   low: "text-blue-400 bg-blue-400/10",
 };
 
+// Persist dismissed/accepted rec IDs in localStorage so they don't reappear
+// every time the dashboard refetches data or the user reloads.
+const DISMISSED_KEY = "insightx:dismissed-recs";
+const ACCEPTED_KEY = "insightx:accepted-recs";
+
+function readSet(key: string): Set<string> {
+  if (typeof window === "undefined") return new Set();
+  try {
+    const raw = window.localStorage.getItem(key);
+    if (!raw) return new Set();
+    const arr = JSON.parse(raw);
+    return Array.isArray(arr) ? new Set(arr.filter((x) => typeof x === "string")) : new Set();
+  } catch {
+    return new Set();
+  }
+}
+
+function writeSet(key: string, set: Set<string>) {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(key, JSON.stringify(Array.from(set)));
+  } catch {
+    /* storage full / blocked — fail quietly */
+  }
+}
+
 export function AiRecommendations({
   initial = [],
 }: {
   initial?: Recommendation[];
 }) {
-  // Lazy initializer; parent uses `key` to remount when data refreshes.
-  const [recs, setRecs] = useState<Recommendation[]>(() => initial);
+  const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set());
   const [accepted, setAccepted] = useState<Set<string>>(new Set());
 
+  // Hydrate persisted state once on mount (client-only)
+  useEffect(() => {
+    setHiddenIds(readSet(DISMISSED_KEY));
+    setAccepted(readSet(ACCEPTED_KEY));
+  }, []);
+
+  // Recompute visible list each render — derives from props + persisted ids
+  const recs = initial.filter((r) => !hiddenIds.has(r.id));
+
+  const persistDismissed = (next: Set<string>) => {
+    setHiddenIds(next);
+    writeSet(DISMISSED_KEY, next);
+  };
+  const persistAccepted = (next: Set<string>) => {
+    setAccepted(next);
+    writeSet(ACCEPTED_KEY, next);
+  };
+
   const handleAccept = (id: string) => {
-    // Optimistic UI: immediately mark as accepted
-    setAccepted((prev) => new Set(prev).add(id));
+    // Optimistic: mark accepted immediately, then hide after a beat so the
+    // user sees the "Applied" check before the card animates out.
+    const nextAccepted = new Set(accepted).add(id);
+    persistAccepted(nextAccepted);
     setTimeout(() => {
-      setRecs((prev) => prev.filter((r) => r.id !== id));
+      const nextHidden = new Set(hiddenIds).add(id);
+      persistDismissed(nextHidden);
     }, 600);
   };
 
   const handleDismiss = (id: string) => {
-    setRecs((prev) => prev.filter((r) => r.id !== id));
+    const next = new Set(hiddenIds).add(id);
+    persistDismissed(next);
   };
+
+  const handleRestore = () => {
+    persistDismissed(new Set());
+    persistAccepted(new Set());
+  };
+
+  const hasHidden = hiddenIds.size > 0;
 
   return (
     <Card className="h-full">
@@ -69,8 +123,19 @@ export function AiRecommendations({
                 </div>
                 <p className="text-sm font-medium">You&apos;re all set</p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  No new recommendations right now.
+                  {hasHidden
+                    ? "All recommendations have been dismissed or applied."
+                    : "No new recommendations right now."}
                 </p>
+                {hasHidden && (
+                  <button
+                    onClick={handleRestore}
+                    className="mt-3 inline-flex items-center gap-1.5 text-xs text-primary hover:underline"
+                  >
+                    <RotateCcw className="w-3 h-3" />
+                    Restore dismissed
+                  </button>
+                )}
               </motion.div>
             ) : (
               recs.map((rec) => (

@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const result = await syncNotionConnection(connection.id);
+    const result = await syncNotionConnection(connection.id, { source: "manual" });
     return NextResponse.json({ success: true, ...result });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Sync failed";

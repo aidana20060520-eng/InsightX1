@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { encrypt } from "@/lib/crypto";
 import { getCurrentUserId } from "@/lib/auth";
+import { createNotification } from "@/lib/notifications";
 
 export const runtime = "nodejs";
 
@@ -146,6 +147,19 @@ export async function GET(req: NextRequest) {
       const syncUrl = appUrl(`/api/notion/sync?connectionId=${connection.id}`);
       fetch(syncUrl, { method: "POST" }).catch((err) => {
         console.error("Failed to trigger initial sync:", err);
+      });
+    }
+
+    // First-connect welcome notification (one-shot, force=true so it
+    // bypasses dedupe even if the user reconnects later)
+    if (isFirstConnect) {
+      void createNotification({
+        userId,
+        type: "first_connect",
+        title: `Welcome — ${tokenData.workspace_name || "Notion"} connected`,
+        body: "We're pulling in your pages now. Your dashboard will fill in within a minute.",
+        link: "/dashboard",
+        force: true,
       });
     }
 

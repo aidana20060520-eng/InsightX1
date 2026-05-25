@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/components/providers/theme-provider";
+import { NotificationBell } from "@/components/notifications/notification-bell";
 
 export function Navbar() {
   const { theme, toggleTheme } = useTheme();
@@ -16,8 +17,8 @@ export function Navbar() {
       transition={{ duration: 0.3 }}
       className="sticky top-0 z-30 h-16 bg-background/80 backdrop-blur-md border-b border-border flex items-center justify-end px-6"
     >
-      {/* Actions — kept minimal until search & notifications are real features */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5">
+        <NotificationBell />
         <Button
           variant="ghost"
           size="icon"

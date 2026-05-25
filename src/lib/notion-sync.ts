@@ -1,12 +1,20 @@
 import { Client, isFullPage, isFullDataSource } from "@notionhq/client";
 import { getSupabaseAdmin } from "./supabase-admin";
 import { decrypt } from "./crypto";
+import { createNotification } from "./notifications";
 
 interface NotionConnectionRow {
   id: string;
+  user_id: string;
   workspace_id: string;
+  workspace_name: string | null;
   access_token_encrypted: string;
   last_sync_at: string | null;
+}
+
+export interface SyncOptions {
+  /** 'manual' = user clicked Sync, bypass dedupe so they see feedback. 'cron' = scheduled, dedupe normally. */
+  source?: "manual" | "cron";
 }
 
 type RichTextLike = Array<{ plain_text?: string }> | undefined;
@@ -56,14 +64,16 @@ interface SyncResult {
  * edited since the last successful sync.
  */
 export async function syncNotionConnection(
-  connectionId: string
+  connectionId: string,
+  options: SyncOptions = {}
 ): Promise<SyncResult> {
   const supabase = getSupabaseAdmin();
+  const isManual = options.source === "manual";
 
   // Load connection
   const { data: conn, error: connError } = await supabase
     .from("notion_connections")
-    .select("id, workspace_id, access_token_encrypted, last_sync_at")
+    .select("id, user_id, workspace_id, workspace_name, access_token_encrypted, last_sync_at")
     .eq("id", connectionId)
     .single<NotionConnectionRow>();
 
@@ -260,6 +270,31 @@ export async function syncNotionConnection(
         .eq("id", run.id);
     }
 
+    // Notify the user. Manual syncs always notify (the user expects feedback).
+    // Background/cron syncs only notify when something actually changed, so we
+    // don't bother people daily with "nothing new" messages.
+    const totalChanges =
+      pagesAdded + pagesUpdated + databasesAdded + databasesUpdated;
+    if (isManual || totalChanges > 0) {
+      const ws = conn.workspace_name || "your Notion workspace";
+      const summaryParts: string[] = [];
+      if (pagesAdded > 0) summaryParts.push(`${pagesAdded} new page${pagesAdded === 1 ? "" : "s"}`);
+      if (pagesUpdated > 0) summaryParts.push(`${pagesUpdated} updated`);
+      if (databasesAdded > 0)
+        summaryParts.push(`${databasesAdded} new database${databasesAdded === 1 ? "" : "s"}`);
+      const summary =
+        summaryParts.length > 0 ? summaryParts.join(" \u00B7 ") : "No changes since last sync";
+      // Fire-and-forget — never block the sync return on notification write
+      void createNotification({
+        userId: conn.user_id,
+        type: "sync_complete",
+        title: `${ws} synced`,
+        body: summary,
+        link: "/dashboard",
+        force: isManual,
+      });
+    }
+
     return {
       pagesAdded,
       pagesUpdated,
@@ -288,6 +323,20 @@ export async function syncNotionConnection(
           databases_updated: databasesUpdated,
         })
         .eq("id", run.id);
+    }
+
+    // Notify the user about the failure. Always non-blocking.
+    if (conn?.user_id) {
+      const ws = conn.workspace_name || "your Notion workspace";
+      void createNotification({
+        userId: conn.user_id,
+        type: "sync_error",
+        title: `Couldn't sync ${ws}`,
+        body:
+          "Try reconnecting Notion from Settings. If it keeps failing, contact us through the Contact page.",
+        link: "/settings",
+        force: isManual,
+      });
     }
 
     throw e;

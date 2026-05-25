@@ -4,18 +4,26 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Sparkles,
-  X,
   Send,
   Plus,
   MessageSquare,
   Trash2,
   ChevronLeft,
   Minimize2,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MarkdownRenderer } from "./markdown-renderer";
 import { cn } from "@/lib/utils";
 import { extractFriendlyError } from "@/lib/format-error";
+
+/**
+ * Floating chat bubble. Backed by the SAME cloud chat API as the full
+ * /chat page so messages, session lists, and history stay in perfect
+ * sync across the bubble, /chat, and any other device the user signs in
+ * on. localStorage is no longer used here — the server is the source of
+ * truth.
+ */
 
 interface Message {
   id: string;
@@ -25,14 +33,11 @@ interface Message {
   streaming?: boolean;
 }
 
-interface ChatSession {
+interface SessionMeta {
   id: string;
   title: string;
-  messages: Message[];
-  updatedAt: number;
+  updatedAt: string;
 }
-
-const STORAGE_KEY = "insightx-chat-sessions";
 
 const suggestedPrompts = [
   "What's at risk this week?",
@@ -41,79 +46,97 @@ const suggestedPrompts = [
   "Top priorities for tomorrow",
 ];
 
-function loadSessions(): ChatSession[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch {
-    return [];
-  }
-}
-
-function saveSessions(sessions: ChatSession[]) {
-  if (typeof window === "undefined") return;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions));
-}
-
-function newSession(): ChatSession {
-  return {
-    id: crypto.randomUUID(),
-    title: "New chat",
-    messages: [],
-    updatedAt: Date.now(),
-  };
-}
-
 export function FloatingAssistant() {
   const [open, setOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
-  const [sessions, setSessions] = useState<ChatSession[]>([]);
-  const [activeId, setActiveId] = useState<string>("");
+
+  const [sessions, setSessions] = useState<SessionMeta[]>([]);
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
+
+  const [loadingSessions, setLoadingSessions] = useState(false);
+  const [loadingMessages, setLoadingMessages] = useState(false);
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
   const [unread, setUnread] = useState(false);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
-
-  // Load sessions on mount
-  useEffect(() => {
-    const loaded = loadSessions();
-    if (loaded.length === 0) {
-      const initial = newSession();
-      setSessions([initial]);
-      setActiveId(initial.id);
-    } else {
-      setSessions(loaded);
-      setActiveId(loaded[0].id);
-    }
-  }, []);
-
-  // Persist on change
-  useEffect(() => {
-    if (sessions.length > 0) saveSessions(sessions);
-  }, [sessions]);
-
-  const activeSession =
-    sessions.find((s) => s.id === activeId) || sessions[0];
-  const messages = activeSession?.messages || [];
+  const initializedRef = useRef(false);
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, []);
 
+  // Load full message list for a given session
+  const loadSession = useCallback(async (id: string) => {
+    setLoadingMessages(true);
+    try {
+      const res = await fetch(`/api/chat/sessions/${id}`, { cache: "no-store" });
+      if (!res.ok) {
+        setMessages([]);
+        return;
+      }
+      const json = await res.json();
+      const loaded: Message[] = (json.messages || []).map(
+        (m: { id: string; role: "user" | "assistant"; content: string; createdAt: string }) => ({
+          id: m.id,
+          role: m.role,
+          content: m.content,
+          timestamp: new Date(m.createdAt).getTime(),
+        })
+      );
+      setMessages(loaded);
+      setActiveId(id);
+    } catch {
+      setMessages([]);
+    } finally {
+      setLoadingMessages(false);
+    }
+  }, []);
+
+  // Pull the user's session list. If they have at least one, hydrate the
+  // most recent. If not, leave messages empty — the next send will create
+  // a session server-side and we'll capture the ID from the response.
+  const fetchSessions = useCallback(
+    async (autoSelectLatest: boolean) => {
+      setLoadingSessions(true);
+      try {
+        const res = await fetch("/api/chat/sessions", { cache: "no-store" });
+        if (!res.ok) return;
+        const json = await res.json();
+        const list: SessionMeta[] = (json.sessions || []).map(
+          (s: { id: string; title: string; updatedAt: string }) => ({
+            id: s.id,
+            title: s.title,
+            updatedAt: s.updatedAt,
+          })
+        );
+        setSessions(list);
+        if (autoSelectLatest && list.length > 0 && !activeId) {
+          await loadSession(list[0].id);
+        }
+      } catch {
+        /* network blip — show empty state, user can retry */
+      } finally {
+        setLoadingSessions(false);
+      }
+    },
+    [activeId, loadSession]
+  );
+
+  // First-time initialization: kick off when the panel opens for the
+  // first time. We don't fetch on mount because the bubble shows on
+  // every page and we don't want the cost on first paint.
+  useEffect(() => {
+    if (!open || initializedRef.current) return;
+    initializedRef.current = true;
+    void fetchSessions(true);
+  }, [open, fetchSessions]);
+
   useEffect(() => {
     if (open) scrollToBottom();
   }, [messages.length, open, scrollToBottom]);
-
-  const updateSession = useCallback(
-    (id: string, fn: (s: ChatSession) => ChatSession) => {
-      setSessions((prev) =>
-        prev.map((s) => (s.id === id ? { ...fn(s), updatedAt: Date.now() } : s))
-      );
-    },
-    []
-  );
 
   const handleSend = async (text?: string) => {
     const content = (text || input).trim();
@@ -125,7 +148,6 @@ export function FloatingAssistant() {
       content,
       timestamp: Date.now(),
     };
-
     const assistantMessage: Message = {
       id: crypto.randomUUID(),
       role: "assistant",
@@ -134,13 +156,8 @@ export function FloatingAssistant() {
       streaming: true,
     };
 
-    // Optimistic update
-    updateSession(activeId, (s) => ({
-      ...s,
-      title:
-        s.messages.length === 0 ? content.slice(0, 40) : s.title,
-      messages: [...s.messages, userMessage, assistantMessage],
-    }));
+    // Optimistic update — show user msg + empty assistant bubble immediately
+    setMessages((prev) => [...prev, userMessage, assistantMessage]);
     setInput("");
     setIsStreaming(true);
 
@@ -154,30 +171,29 @@ export function FloatingAssistant() {
             role: m.role,
             content: m.content,
           })),
+          sessionId: activeId, // null on first send → server creates one
         }),
         signal: abortRef.current.signal,
       });
 
+      // Capture the (possibly new) session ID from the response header so
+      // subsequent messages persist to the same conversation
+      const returnedId = res.headers.get("X-Session-Id");
+      if (returnedId && returnedId !== activeId) {
+        setActiveId(returnedId);
+      }
+
       if (!res.body) throw new Error("No response body");
 
-      // If the server returned a JSON error body, surface a friendly
-      // message instead of rendering the JSON verbatim.
       const contentType = res.headers.get("content-type") || "";
       if (!res.ok || contentType.includes("application/json")) {
         const text = await res.text();
         const friendly = extractFriendlyError(text);
-        setSessions((prev) =>
-          prev.map((s) =>
-            s.id === activeId
-              ? {
-                  ...s,
-                  messages: s.messages.map((m) =>
-                    m.id === assistantMessage.id
-                      ? { ...m, content: friendly, streaming: false }
-                      : m
-                  ),
-                }
-              : s
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === assistantMessage.id
+              ? { ...m, content: friendly, streaming: false }
+              : m
           )
         );
         return;
@@ -191,61 +207,36 @@ export function FloatingAssistant() {
         const { done, value } = await reader.read();
         if (done) break;
         accumulated += decoder.decode(value, { stream: true });
-
-        // Update streaming message in place
-        setSessions((prev) =>
-          prev.map((s) =>
-            s.id === activeId
-              ? {
-                  ...s,
-                  messages: s.messages.map((m) =>
-                    m.id === assistantMessage.id
-                      ? { ...m, content: accumulated }
-                      : m
-                  ),
-                }
-              : s
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === assistantMessage.id ? { ...m, content: accumulated } : m
           )
         );
       }
 
-      // Mark streaming complete
-      setSessions((prev) =>
-        prev.map((s) =>
-          s.id === activeId
-            ? {
-                ...s,
-                messages: s.messages.map((m) =>
-                  m.id === assistantMessage.id
-                    ? { ...m, streaming: false }
-                    : m
-                ),
-              }
-            : s
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === assistantMessage.id ? { ...m, streaming: false } : m
         )
       );
 
       if (!open) setUnread(true);
+
+      // Refresh session list so the title (auto-derived from first user
+      // message) and updatedAt show correctly in history
+      void fetchSessions(false);
     } catch (e) {
       if ((e as Error)?.name === "AbortError") return;
-      // Show error in assistant bubble
-      setSessions((prev) =>
-        prev.map((s) =>
-          s.id === activeId
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === assistantMessage.id
             ? {
-                ...s,
-                messages: s.messages.map((m) =>
-                  m.id === assistantMessage.id
-                    ? {
-                        ...m,
-                        content:
-                          "Sorry, I couldn't reach the AI just now. Try again?",
-                        streaming: false,
-                      }
-                    : m
-                ),
+                ...m,
+                content:
+                  "Sorry, I couldn't reach the AI just now. Try again?",
+                streaming: false,
               }
-            : s
+            : m
         )
       );
     } finally {
@@ -255,23 +246,36 @@ export function FloatingAssistant() {
   };
 
   const handleNewChat = () => {
-    const s = newSession();
-    setSessions((prev) => [s, ...prev]);
-    setActiveId(s.id);
+    setActiveId(null);
+    setMessages([]);
     setHistoryOpen(false);
   };
 
-  const handleDeleteSession = (id: string) => {
-    setSessions((prev) => {
-      const next = prev.filter((s) => s.id !== id);
-      if (next.length === 0) {
-        const fresh = newSession();
-        setActiveId(fresh.id);
-        return [fresh];
+  const handleSelectSession = (id: string) => {
+    if (id === activeId) {
+      setHistoryOpen(false);
+      return;
+    }
+    void loadSession(id).then(() => setHistoryOpen(false));
+  };
+
+  const handleDeleteSession = async (id: string) => {
+    // Optimistic — remove from list first
+    const before = sessions;
+    setSessions((prev) => prev.filter((s) => s.id !== id));
+    if (id === activeId) {
+      setActiveId(null);
+      setMessages([]);
+    }
+    try {
+      const res = await fetch(`/api/chat/sessions/${id}`, { method: "DELETE" });
+      if (!res.ok) {
+        // Roll back on failure
+        setSessions(before);
       }
-      if (id === activeId) setActiveId(next[0].id);
-      return next;
-    });
+    } catch {
+      setSessions(before);
+    }
   };
 
   const togglePanel = () => {
@@ -296,9 +300,7 @@ export function FloatingAssistant() {
             aria-label="Open AI assistant"
           >
             <div className="relative">
-              {/* Glow */}
               <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary to-accent blur-xl opacity-50 group-hover:opacity-70 transition-opacity" />
-              {/* Button */}
               <div className="relative w-14 h-14 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-xl shadow-primary/30">
                 <Sparkles className="w-6 h-6 text-white" />
                 {unread && (
@@ -314,7 +316,6 @@ export function FloatingAssistant() {
       <AnimatePresence>
         {open && (
           <>
-            {/* Backdrop on mobile */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -330,13 +331,10 @@ export function FloatingAssistant() {
               transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
               className={cn(
                 "fixed z-50 flex flex-col overflow-hidden",
-                // Mobile: full bottom sheet
                 "inset-x-2 bottom-2 top-16 rounded-2xl",
-                // Desktop: floating panel
                 "md:inset-auto md:bottom-6 md:right-6 md:top-auto md:left-auto md:w-[420px] md:h-[640px]"
               )}
             >
-              {/* Glow border effect */}
               <div className="absolute -inset-px rounded-2xl bg-gradient-to-br from-primary/40 via-accent/30 to-primary/40 opacity-60 blur-md pointer-events-none" />
 
               <div className="relative flex flex-col h-full rounded-2xl border border-border bg-card/95 backdrop-blur-xl shadow-2xl">
@@ -362,7 +360,7 @@ export function FloatingAssistant() {
                       </p>
                       {!historyOpen && (
                         <p className="text-[10px] text-muted-foreground">
-                          Connected to your workspace
+                          Synced across devices
                         </p>
                       )}
                     </div>
@@ -371,7 +369,10 @@ export function FloatingAssistant() {
                     {!historyOpen && (
                       <>
                         <button
-                          onClick={() => setHistoryOpen(true)}
+                          onClick={() => {
+                            setHistoryOpen(true);
+                            void fetchSessions(false);
+                          }}
                           className="w-7 h-7 rounded-lg hover:bg-muted flex items-center justify-center transition-colors"
                           aria-label="Chat history"
                           title="Chat history"
@@ -418,43 +419,49 @@ export function FloatingAssistant() {
                           <Plus className="w-4 h-4 text-muted-foreground" />
                           <span className="text-sm">New chat</span>
                         </button>
-                        {sessions.map((s) => (
-                          <button
-                            key={s.id}
-                            onClick={() => {
-                              setActiveId(s.id);
-                              setHistoryOpen(false);
-                            }}
-                            className={cn(
-                              "w-full flex items-center gap-2 p-3 rounded-lg transition-colors text-left group",
-                              s.id === activeId
-                                ? "bg-primary/10 text-primary"
-                                : "hover:bg-muted"
-                            )}
-                          >
-                            <MessageSquare className="w-4 h-4 shrink-0 opacity-60" />
-                            <div className="flex-1 min-w-0">
-                              <p className="text-[13px] font-medium truncate">
-                                {s.title}
-                              </p>
-                              <p className="text-[10px] text-muted-foreground">
-                                {new Date(s.updatedAt).toLocaleString()}
-                              </p>
-                            </div>
-                            {sessions.length > 1 && (
+
+                        {loadingSessions && sessions.length === 0 ? (
+                          <div className="flex items-center justify-center py-8">
+                            <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+                          </div>
+                        ) : sessions.length === 0 ? (
+                          <p className="text-xs text-muted-foreground text-center py-8">
+                            No conversations yet. Start one above.
+                          </p>
+                        ) : (
+                          sessions.map((s) => (
+                            <button
+                              key={s.id}
+                              onClick={() => handleSelectSession(s.id)}
+                              className={cn(
+                                "w-full flex items-center gap-2 p-3 rounded-lg transition-colors text-left group",
+                                s.id === activeId
+                                  ? "bg-primary/10 text-primary"
+                                  : "hover:bg-muted"
+                              )}
+                            >
+                              <MessageSquare className="w-4 h-4 shrink-0 opacity-60" />
+                              <div className="flex-1 min-w-0">
+                                <p className="text-[13px] font-medium truncate">
+                                  {s.title}
+                                </p>
+                                <p className="text-[10px] text-muted-foreground">
+                                  {new Date(s.updatedAt).toLocaleString()}
+                                </p>
+                              </div>
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  handleDeleteSession(s.id);
+                                  void handleDeleteSession(s.id);
                                 }}
                                 className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-destructive/10 hover:text-destructive transition-all"
                                 aria-label="Delete chat"
                               >
                                 <Trash2 className="w-3 h-3" />
                               </button>
-                            )}
-                          </button>
-                        ))}
+                            </button>
+                          ))
+                        )}
                       </motion.div>
                     ) : (
                       <motion.div
@@ -466,7 +473,11 @@ export function FloatingAssistant() {
                       >
                         {/* Messages */}
                         <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                          {messages.length === 0 ? (
+                          {loadingMessages ? (
+                            <div className="h-full flex items-center justify-center">
+                              <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+                            </div>
+                          ) : messages.length === 0 ? (
                             <div className="h-full flex flex-col items-center justify-center text-center px-2">
                               <motion.div
                                 animate={{
@@ -543,8 +554,7 @@ export function FloatingAssistant() {
                             </Button>
                           </div>
                           <p className="text-[10px] text-muted-foreground mt-2 text-center">
-                            Responses may reference Notion pages from your
-                            workspace
+                            Saved automatically · Synced with the Chat page
                           </p>
                         </div>
                       </motion.div>

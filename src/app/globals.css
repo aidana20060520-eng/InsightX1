@@ -131,3 +131,74 @@ body {
 html {
   scroll-behavior: smooth;
 }
+
+/* Typography for marketing / legal pages (Privacy, Terms, Contact). */
+.marketing-prose {
+  color: #d4d4d8;
+  font-size: 15px;
+  line-height: 1.75;
+}
+.marketing-prose h2 {
+  color: #ffffff;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin-top: 2.5rem;
+  margin-bottom: 0.75rem;
+}
+.marketing-prose h2:first-child {
+  margin-top: 0;
+}
+.marketing-prose h3 {
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 600;
+  margin-top: 1.75rem;
+  margin-bottom: 0.5rem;
+}
+.marketing-prose p {
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+.marketing-prose ul,
+.marketing-prose ol {
+  margin: 0 0 1.25rem 0;
+  padding-left: 1.25rem;
+}
+.marketing-prose li {
+  margin-bottom: 0.5rem;
+}
+.marketing-prose ul li {
+  list-style: disc;
+}
+.marketing-prose ol li {
+  list-style: decimal;
+}
+.marketing-prose strong {
+  color: #ffffff;
+  font-weight: 600;
+}
+.marketing-prose a {
+  color: #a78bfa;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: rgba(167, 139, 250, 0.4);
+  transition: color 0.15s ease;
+}
+.marketing-prose a:hover {
+  color: #c4b5fd;
+}
+.marketing-prose code {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-size: 13px;
+  font-family: var(--font-mono), monospace;
+  color: #e4e4e7;
+}
+.marketing-prose hr {
+  border: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  margin: 2.5rem 0;
+}

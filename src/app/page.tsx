@@ -46,7 +46,11 @@ export default function LandingPage() {
             </nav>
             <div className="flex items-center gap-3">
               <Show when="signed-out">
-                <SignInButton mode="modal">
+                <SignInButton
+                  mode="modal"
+                  forceRedirectUrl="/dashboard"
+                  fallbackRedirectUrl="/dashboard"
+                >
                   <Button
                     variant="ghost"
                     size="sm"
@@ -55,7 +59,11 @@ export default function LandingPage() {
                     Sign in
                   </Button>
                 </SignInButton>
-                <SignUpButton mode="modal">
+                <SignUpButton
+                  mode="modal"
+                  forceRedirectUrl="/onboarding"
+                  fallbackRedirectUrl="/onboarding"
+                >
                   <Button variant="gradient" size="sm">
                     Get Started
                   </Button>
@@ -93,9 +101,15 @@ export default function LandingPage() {
               <span className="font-semibold text-sm">InsightX</span>
             </div>
             <div className="flex items-center gap-6 text-[12px] text-[#52525b]">
-              <a href="#" className="hover:text-[#a1a1aa] transition-colors">Privacy</a>
-              <a href="#" className="hover:text-[#a1a1aa] transition-colors">Terms</a>
-              <a href="#" className="hover:text-[#a1a1aa] transition-colors">Contact</a>
+              <Link href="/privacy" className="hover:text-[#a1a1aa] transition-colors">
+                Privacy
+              </Link>
+              <Link href="/terms" className="hover:text-[#a1a1aa] transition-colors">
+                Terms
+              </Link>
+              <Link href="/contact" className="hover:text-[#a1a1aa] transition-colors">
+                Contact
+              </Link>
             </div>
             <p className="text-[12px] text-[#3f3f46]">
               &copy; {new Date().getFullYear()} InsightX. All rights reserved.

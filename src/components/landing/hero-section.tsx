@@ -23,7 +23,7 @@ export function HeroSection() {
           className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.08] text-primary text-sm font-medium mb-8 backdrop-blur-sm"
         >
           <Sparkles className="w-3.5 h-3.5" />
-          Powered by GPT-4o
+          Free during beta
         </motion.div>
 
         <motion.h1
@@ -56,13 +56,13 @@ export function HeroSection() {
         >
           <Link href="/onboarding">
             <Button variant="gradient" size="xl" className="group shadow-lg shadow-primary/20">
-              Start Free Trial
+              Get Started Free
               <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
             </Button>
           </Link>
-          <Link href="/dashboard">
+          <Link href="#features">
             <Button variant="outline" size="xl" className="border-white/10 hover:bg-white/[0.04]">
-              View Demo
+              See how it works
             </Button>
           </Link>
         </motion.div>

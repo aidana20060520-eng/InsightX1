@@ -44,12 +44,12 @@ export function AiAssistantPreview() {
               <span className="text-[#71717a]">your workspace</span>
             </h2>
             <p className="text-[#a1a1aa] text-base leading-relaxed max-w-md mb-8">
-              A conversational AI that understands every page, database, and
-              comment in your Notion. Ask questions in plain English and get
-              structured, actionable answers.
+              A conversational AI that understands every page and database in
+              your synced Notion workspace. Ask in plain English. Conversations
+              save automatically and follow you across devices.
             </p>
             <div className="flex flex-wrap gap-2">
-              {["Natural language", "Context-aware", "Action suggestions"].map(
+              {["Natural language", "Context-aware", "Saved history"].map(
                 (tag) => (
                   <span
                     key={tag}

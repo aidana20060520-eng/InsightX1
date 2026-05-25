@@ -108,20 +108,20 @@ export function WeeklyReportsPreview() {
             className="order-1 lg:order-2"
           >
             <span className="text-xs uppercase tracking-[0.2em] text-primary font-medium mb-4 block">
-              Weekly Reports
+              Weekly Summary
             </span>
             <h2 className="text-3xl md:text-4xl font-bold mb-5 tracking-tight leading-tight">
-              Automated digests,
+              The week, in
               <br />
-              <span className="text-[#71717a]">zero effort</span>
+              <span className="text-[#71717a]">one glance</span>
             </h2>
             <p className="text-[#a1a1aa] text-base leading-relaxed max-w-md mb-8">
-              Every Monday, InsightX delivers a beautifully structured summary of
-              what happened in your Notion workspace — wins, risks, and
-              recommendations.
+              Your dashboard auto-generates a weekly summary from your Notion
+              activity — wins, risks, what got neglected. No setup. Refresh
+              with one click.
             </p>
             <div className="flex flex-wrap gap-2">
-              {["Auto-generated", "Slack & Email", "Custom frequency"].map((tag) => (
+              {["Auto-generated", "Wins & risks", "On your dashboard"].map((tag) => (
                 <span
                   key={tag}
                   className="px-3 py-1 rounded-full bg-white/[0.04] border border-white/[0.06] text-xs text-[#a1a1aa]"

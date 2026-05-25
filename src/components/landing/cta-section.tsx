@@ -33,30 +33,29 @@ export function CtaSection() {
             </motion.div>
 
             <h2 className="text-3xl md:text-4xl font-bold mb-4 tracking-tight">
-              Start making smarter
+              See your Notion
               <br />
-              decisions today
+              in a new light
             </h2>
             <p className="text-[#a1a1aa] max-w-md mx-auto mb-8 text-base leading-relaxed">
-              Connect your Notion workspace in 30 seconds and let InsightX
-              surface the insights that matter most.
+              Connect in under a minute, sync once, and start asking questions.
+              Free during the beta.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
               <Link href="/onboarding">
                 <Button variant="gradient" size="xl" className="group shadow-lg shadow-primary/20">
-                  Start Free Trial
+                  Get started free
                   <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
-              <Link href="/dashboard">
+              <Link href="#features">
                 <Button variant="outline" size="lg" className="border-white/10 hover:bg-white/[0.04]">
-                  View Demo
+                  See features
                 </Button>
               </Link>
             </div>
             <p className="text-[11px] text-[#52525b] mt-5">
-              No credit card required &middot; 14-day free trial &middot; Cancel
-              anytime
+              No credit card &middot; No trial timer &middot; Sign in with Google
             </p>
           </div>
         </motion.div>

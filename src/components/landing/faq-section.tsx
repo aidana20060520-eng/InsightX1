@@ -8,27 +8,27 @@ import { cn } from "@/lib/utils";
 const faqs = [
   {
     q: "How does InsightX connect to my Notion workspace?",
-    a: "You authorize InsightX via Notion's official OAuth integration. We get read-only access to your workspace pages and databases — nothing is modified. The connection takes about 30 seconds.",
+    a: "You authorize InsightX through Notion's official OAuth flow. We get read-only access to whichever pages and databases you choose — nothing is modified, nothing is written. The connection takes under a minute, and you can revoke it any time from Notion's settings.",
   },
   {
     q: "Is my data safe?",
-    a: "Absolutely. We're SOC 2 Type II compliant with end-to-end encryption. Your data is processed in isolated pipelines and never shared. You can revoke access at any time from your Notion settings.",
+    a: "Your Notion access tokens are encrypted with AES-256-GCM before being stored. All traffic uses HTTPS. Each user's data is isolated in the database — no cross-user access is possible. We don't claim SOC 2 yet because that's a real audit and we haven't done one. Honest answer: this is MVP-grade safe, not enterprise-grade safe.",
   },
   {
-    q: "How accurate are the AI insights?",
-    a: "Our models run a confidence check on every insight (visible in the dashboard). On average, insights carry a 92% confidence score. You can always drill into the source data behind any recommendation.",
+    q: "What can the AI actually do?",
+    a: "It reads your synced Notion workspace and answers questions about it — what you've worked on, what's stale, what patterns it notices. It also handles emotional context: if you say you're stressed, it doesn't dump a checklist on you. Conversations save automatically across devices.",
   },
   {
-    q: "Can I connect multiple Notion workspaces?",
-    a: "Yes — Pro and Enterprise plans support unlimited workspaces. InsightX creates a unified view across all of them, so you can see cross-workspace patterns and metrics in one place.",
+    q: "Can I connect more than one Notion workspace?",
+    a: "Not yet. One workspace per account today. Multi-workspace is on the roadmap once there's enough demand for it.",
   },
   {
     q: "Do I need to structure my Notion pages in a specific way?",
-    a: "No. InsightX works with any Notion setup — pages, databases, wikis, docs, you name it. Our AI adapts to your workspace structure, not the other way around.",
+    a: "No. InsightX works with any Notion setup — pages, databases, wikis, docs. The more recent activity in your workspace, the more useful the insights become.",
   },
   {
-    q: "What happens after the free trial?",
-    a: "After 14 days, you can continue on our free Starter plan (limited features) or upgrade to Pro. No credit card is required to start, and you'll never be charged without explicit consent.",
+    q: "How much does it cost?",
+    a: "Nothing during the beta. Every feature is free, no credit card required. After launch there will be paid plans for power users, and beta users will get early-bird pricing as a thank-you.",
   },
 ];
 

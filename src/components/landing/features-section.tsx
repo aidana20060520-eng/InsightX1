@@ -5,48 +5,48 @@ import { motion } from "framer-motion";
 import {
   Brain,
   BarChart3,
-  Bell,
-  Layers,
-  Zap,
+  MessageCircle,
+  Heart,
+  RefreshCw,
   Lock,
 } from "lucide-react";
 
 const features = [
   {
     icon: Brain,
-    title: "Deep Analysis",
+    title: "Workspace analysis",
     description:
-      "Scans every page, database, and note in your workspace to surface patterns you'd never spot manually.",
+      "Scans every page and database to surface patterns — what you've neglected, where you're moving fast, what's quietly aging out.",
   },
   {
     icon: BarChart3,
-    title: "Visual Dashboards",
+    title: "Visual dashboard",
     description:
-      "Auto-generated charts and dashboards that update as your Notion workspace evolves.",
+      "Productivity trends, focus score, project health, and weekly summaries — all auto-generated from your real workspace activity.",
   },
   {
-    icon: Bell,
-    title: "Smart Alerts",
+    icon: MessageCircle,
+    title: "AI chat with memory",
     description:
-      "Get notified when key metrics shift, deadlines approach, or opportunities emerge from your data.",
+      "Ask anything about your workspace. Conversations save automatically and stay across devices, so you can pick up where you left off.",
   },
   {
-    icon: Layers,
-    title: "Multi-Workspace",
+    icon: Heart,
+    title: "Emotionally aware",
     description:
-      "Connect multiple Notion workspaces and get a unified view across teams and projects.",
+      "The AI reads how you're feeling. Stressed? It listens before suggesting. Excited? It celebrates with you. Not just a productivity bot.",
   },
   {
-    icon: Zap,
-    title: "Instant Sync",
+    icon: RefreshCw,
+    title: "One-click sync",
     description:
-      "Real-time sync with your Notion pages — every change is reflected in your insights within seconds.",
+      "Connect Notion via official OAuth, hit sync, done. Your insights refresh on demand without leaving the app.",
   },
   {
     icon: Lock,
-    title: "Private & Secure",
+    title: "Private & secure",
     description:
-      "Your data never leaves the pipeline. SOC 2 Type II compliant with end-to-end encryption.",
+      "HTTPS everywhere. Your Notion access tokens are AES-256 encrypted at rest. Each user's data is fully isolated.",
   },
 ];
 
@@ -70,8 +70,7 @@ export function FeaturesSection() {
             <span className="text-[#71717a]">how you actually work</span>
           </h2>
           <p className="text-[#a1a1aa] max-w-lg mx-auto text-base">
-            Six powerful capabilities that turn your Notion workspace into a
-            competitive advantage.
+            Real features, shipping today. No fake promises, no roadmap fluff.
           </p>
         </motion.div>
 

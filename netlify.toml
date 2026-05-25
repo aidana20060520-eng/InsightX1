@@ -1,0 +1,18 @@
+# Netlify build configuration for InsightX (Next.js 16).
+#
+# The Next.js runtime is auto-installed by Netlify and handles routing,
+# server functions, and image optimization. We just declare the build
+# command, output directory, and a modern Node version.
+
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# NOTE: The cron job in vercel.json (`/api/cron/notion-sync`) is
+# Vercel-specific and does not run on Netlify. On Netlify, users get
+# fresh data by clicking "Sync Notion" manually. If you want background
+# sync on Netlify, set up a Netlify Scheduled Function later — for now
+# the manual sync path works fine.
